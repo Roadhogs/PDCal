@@ -1,34 +1,33 @@
-name: Fetch PagerDuty iCal and convert to JSON
+name: Fetch PagerDuty iCal and Update Repo
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'  # every 30 minutes
-  workflow_dispatch:        # allows manual trigger
+  push:
+    branches:
+      - main
 
 jobs:
-  fetch:
+  fetch-and-update:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm install node-fetch@2 ical.js
-
-      - name: Run fetch script
-        run: node scripts/fetch-ical.js
-        env:
-          ICAL_URL: ${{ secrets.PD_ICAL_URL }}
-
-      - name: Commit changes
+      # Step 2: Set up Git
+      - name: Set up GitHub token for push
         run: |
           git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
+          git config --global user.email "github-actions@github.com"
+
+      # Step 3: Fetch the iCal data and generate the oncall.json
+      - name: Fetch iCal Data
+        run: |
+          # Fetch your iCal data here (e.g., using fetch-ical.js or another method)
+          node scripts/fetch-ical.js  # Or whatever script you're using to generate the JSON file
+
+      # Step 4: Commit and push changes
+      - name: Commit and push changes
+        run: |
           git add oncall.json
-          git commit -m "Update oncall.json [skip ci]" || echo "No changes"
-          git push
+          git commit -m "Update oncall.json [skip ci]"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Roadhogs/PDCal.git HEAD:main
