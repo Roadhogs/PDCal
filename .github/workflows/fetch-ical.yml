@@ -14,6 +14,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # You can use the latest version you prefer
+
+      - name: Install dependencies
+        run: |
+          npm install  # This will install all dependencies listed in package.json, including node-fetch
+
       - name: Set up GitHub token for push
         run: |
           git config --global user.name "github-actions"
