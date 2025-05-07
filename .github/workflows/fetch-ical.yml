@@ -1,38 +1,25 @@
-name: Fetch iCal and Update Oncall
+import fetch from 'node-fetch'; // Use 'import' for ES Module
+import ICAL from 'ical.js';
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch: # allows you to manually trigger the workflow
+const url = 'https://example.com/your-ical-url.ics'; // Your iCal URL
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+async function fetchICal(url) {
+    try {
+        const response = await fetch(url);
+        const icalData = await response.text(); // Get the raw iCal data as a string
+        
+        const jcalData = ICAL.parse(icalData); // Parse the iCal data
+        const comp = new ICAL.Component(jcalData);
+        
+        // Example: Log all events in the iCal
+        const events = comp.getAllSubcomponents('vevent');
+        events.forEach(event => {
+            const e = new ICAL.Event(event);
+            console.log(e.summary); // Log the event summary
+        });
+    } catch (error) {
+        console.error('Failed to fetch/parse iCal:', error);
+    }
+}
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
-
-    - name: Install dependencies
-      run: |
-        npm install
-
-    - name: Run fetch-ical.js script
-      run: |
-        node scripts/fetch-ical.js
-
-    - name: Commit and Push changes
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
-        git add .
-        git commit -m "Update oncall.json with latest iCal data"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+fetchICal(url);
