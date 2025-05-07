@@ -26,8 +26,8 @@ jobs:
           node scripts/fetch-ical.js  # Or whatever script you're using to generate the JSON file
 
       # Step 4: Commit and push changes
-      - name: Commit and push changes
-        run: |
-          git add oncall.json
-          git commit -m "Update oncall.json [skip ci]"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Roadhogs/PDCal.git HEAD:main
+     name: Commit and push changes
+  run: |
+    git add oncall.json
+    git commit -m "Update oncall.json [skip ci]"
+    git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Roadhogs/PDCal.git HEAD:main
