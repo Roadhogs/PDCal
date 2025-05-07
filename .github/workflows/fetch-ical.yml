@@ -1,29 +1,33 @@
-name: Fetch iCal and Process
+name: Fetch iCal and Update On-Call Data
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:  # Allows the workflow to be triggered manually
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight UTC
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
 
 jobs:
-  fetch-and-process:
-    runs-on: ubuntu-latest  # Specifies the virtual environment
-
+  fetch-and-update:
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2  # Checks out the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Debug current working directory
-      run: pwd  # This will help you see the current directory
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2  # Set up Node.js
-      with:
-        node-version: '16'  # Specify the Node.js version
+      - name: Install dependencies
+        run: |
+          npm install
 
-    - name: Install dependencies
-      run: npm install  # Installs dependencies from package.json
+      - name: Fetch and parse iCal feed
+        run: |
+          node scripts/fetch-ical.js
 
-    - name: Run fetch-ical.mjs
-      run: node scripts/fetch-ical.mjs  # Run the script (adjust the path if necessary)
+      - name: Commit and push updated on-call data
+        uses: devops-infra/action-commit-push@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: "Update on-call data"
+          target_branch: main
