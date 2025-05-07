@@ -1,33 +1,26 @@
-const fs = require('fs');
-const fetch = require('node-fetch');
-const ICAL = require('ical.js');
+name: Fetch iCal and Process
 
-const url = process.env.ICAL_URL;
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
-async function fetchICal() {
-    try {
-        const res = await fetch(url);
-        const icalData = await res.text();
-        const jcalData = ICAL.parse(icalData);
-        const comp = new ICAL.Component(jcalData);
-        const vevents = comp.getAllSubcomponents('vevent');
+jobs:
+  fetch-and-process:
+    runs-on: ubuntu-latest
 
-        const events = vevents.map(vevent => {
-            const event = new ICAL.Event(vevent);
-            return {
-                title: event.summary,
-                start: event.startDate.toJSDate(),
-                end: event.endDate.toJSDate(),
-                url: event.component.getFirstPropertyValue('url') || ''
-            };
-        });
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-        fs.writeFileSync('oncall.json', JSON.stringify(events, null, 2));
-        console.log("oncall.json written with", events.length, "events.");
-    } catch (e) {
-        console.error("Failed to fetch/parse iCal:", e);
-        process.exit(1);
-    }
-}
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
 
-fetchICal();
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run fetch-ical.js
+      run: node scripts/fetch-ical.js  # Correct path to your script
