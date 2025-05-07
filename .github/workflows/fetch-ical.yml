@@ -4,30 +4,38 @@ on:
   push:
     branches:
       - main
-workflow_dispatch: # This enables manual workflow trigger
+  workflow_dispatch:
+
 jobs:
   fetch-and-update:
     runs-on: ubuntu-latest
+
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Step 2: Set up Git
       - name: Set up GitHub token for push
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-      # Step 3: Fetch the iCal data and generate the oncall.json
+      - name: Set up SSH key for GitHub
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
       - name: Fetch iCal Data
         run: |
-          # Fetch your iCal data here (e.g., using fetch-ical.js or another method)
-          node scripts/fetch-ical.js  # Or whatever script you're using to generate the JSON file
+          node scripts/fetch-ical.js  # Or another method you use to generate the JSON
 
-      # Step 4: Commit and push changes
-     name: Commit and push changes
-  run: |
-    git add oncall.json
-    git commit -m "Update oncall.json [skip ci]"
-    git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/Roadhogs/PDCal.git HEAD:main
+      - name: Pull latest changes from remote
+        run: |
+          git pull origin main
+
+      - name: Commit and push changes
+        run: |
+          git add oncall.json
+          git commit -m "Update oncall.json [skip ci]"
+          git push git@github.com:Roadhogs/PDCal.git HEAD:main  # Use SSH URL for push
