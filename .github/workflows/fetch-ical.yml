@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-
+workflow_dispatch:
 jobs:
   fetch-and-update:
     runs-on: ubuntu-latest
