@@ -1,50 +1,38 @@
-name: Fetch PagerDuty iCal and Update Repo
+name: Fetch iCal and Update Oncall
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch: # allows you to manually trigger the workflow
 
 jobs:
-  fetch-and-update:
+  build:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'  # You can use the latest version you prefer
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
 
-      - name: Install dependencies
-        run: |
-          npm install  # This will install all dependencies listed in package.json, including node-fetch
+    - name: Install dependencies
+      run: |
+        npm install
 
-      - name: Set up GitHub token for push
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+    - name: Run fetch-ical.js script
+      run: |
+        node scripts/fetch-ical.js
 
-      - name: Set up SSH key for GitHub
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-      - name: Fetch iCal Data
-        run: |
-          node scripts/fetch-ical.js  # Or another method you use to generate the JSON
-
-      - name: Pull latest changes from remote
-        run: |
-          git pull origin main
-
-      - name: Commit and push changes
-        run: |
-          git add oncall.json
-          git commit -m "Update oncall.json [skip ci]"
-          git push git@github.com:Roadhogs/PDCal.git HEAD:main  # Use SSH URL for push
+    - name: Commit and Push changes
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git add .
+        git commit -m "Update oncall.json with latest iCal data"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
