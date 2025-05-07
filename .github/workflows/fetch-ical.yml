@@ -25,5 +25,5 @@ jobs:
     - name: Install dependencies
       run: npm install  # Installs dependencies from package.json
 
-    - name: Run fetch-ical.js
-      run: node scripts/fetch-ical.js  # Run the script (adjust the path if necessary)
+    - name: Run fetch-ical.mjs
+      run: node scripts/fetch-ical.mjs  # Run the script (adjust the path if necessary)
