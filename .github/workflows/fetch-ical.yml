@@ -1,25 +1,29 @@
-import fetch from 'node-fetch'; // Use 'import' for ES Module
-import ICAL from 'ical.js';
+name: Fetch iCal and Process
 
-const url = 'https://example.com/your-ical-url.ics'; // Your iCal URL
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allows the workflow to be triggered manually
 
-async function fetchICal(url) {
-    try {
-        const response = await fetch(url);
-        const icalData = await response.text(); // Get the raw iCal data as a string
-        
-        const jcalData = ICAL.parse(icalData); // Parse the iCal data
-        const comp = new ICAL.Component(jcalData);
-        
-        // Example: Log all events in the iCal
-        const events = comp.getAllSubcomponents('vevent');
-        events.forEach(event => {
-            const e = new ICAL.Event(event);
-            console.log(e.summary); // Log the event summary
-        });
-    } catch (error) {
-        console.error('Failed to fetch/parse iCal:', error);
-    }
-}
+jobs:
+  fetch-and-process:
+    runs-on: ubuntu-latest  # Specifies the virtual environment
 
-fetchICal(url);
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2  # Checks out the repository code
+
+    - name: Debug current working directory
+      run: pwd  # This will help you see the current directory
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2  # Set up Node.js
+      with:
+        node-version: '16'  # Specify the Node.js version
+
+    - name: Install dependencies
+      run: npm install  # Installs dependencies from package.json
+
+    - name: Run fetch-ical.js
+      run: node scripts/fetch-ical.js  # Run the script (adjust the path if necessary)
